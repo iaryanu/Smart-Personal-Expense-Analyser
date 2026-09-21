@@ -1,0 +1,53 @@
+date,description,amount,category,payment_method
+2026-07-01,Electricity bill,1240,Bills,UPI
+2026-07-02,Swiggy dinner,420,,UPI
+2026-07-03,Uber to office,210,,UPI
+2026-07-04,Groceries DMart,1850,Food,Debit Card
+2026-07-06,Netflix subscription,649,,Credit Card
+2026-07-08,Metro card top-up,500,Travel,UPI
+2026-07-09,Pizza with friends,780,Food,Cash
+2026-07-11,Amazon headphones,1299,Shopping,Credit Card
+2026-07-13,Petrol,600,,Cash
+2026-07-15,Doctor consultation,500,,UPI
+2026-07-16,Mobile recharge,299,Bills,UPI
+2026-07-18,Coffee,180,,Cash
+2026-07-20,Python course,999,Education,Credit Card
+2026-07-22,Movie tickets,550,,UPI
+2026-07-24,Zomato lunch,340,,UPI
+2026-07-26,Pharmacy,220,,Cash
+2026-07-28,Uber airport,780,Travel,UPI
+2026-07-30,Books from college store,450,,Cash
+2026-08-01,Electricity bill,1180,Bills,UPI
+2026-08-02,Swiggy biryani,380,,UPI
+2026-08-03,Groceries DMart,1420,Food,Debit Card
+2026-08-05,Ola to station,240,,UPI
+2026-08-06,Netflix subscription,649,,Credit Card
+2026-08-08,Wifi bill,799,,Bank Transfer
+2026-08-10,Movie night,480,Entertainment,UPI
+2026-08-12,Flipkart shirt,699,Shopping,Credit Card
+2026-08-14,Doctor visit,400,Health,Cash
+2026-08-15,Independence Day lunch,350,Food,Cash
+2026-08-17,Petrol,550,Travel,Cash
+2026-08-19,Stationery,210,,Cash
+2026-08-21,Coffee with team,260,,UPI
+2026-08-23,Train ticket home,620,Travel,UPI
+2026-08-25,Amazon phone case,349,Shopping,Debit Card
+2026-08-27,Dinner at restaurant,720,,Credit Card
+2026-08-29,Medicine,310,,UPI
+2026-09-01,Electricity bill,1310,Bills,UPI
+2026-09-02,Swiggy lunch,360,,UPI
+2026-09-03,Uber to office,230,,UPI
+2026-09-05,Groceries DMart,1740,Food,Debit Card
+2026-09-06,Netflix subscription,649,,Credit Card
+2026-09-07,Pizza night,620,,Cash
+2026-09-09,Amazon backpack,1199,Shopping,Credit Card
+2026-09-10,Metro pass,400,Travel,UPI
+2026-09-12,Movie tickets,600,,UPI
+2026-09-13,Coffee,150,,Cash
+2026-09-14,Doctor checkup,600,Health,UPI
+2026-09-15,Internet bill,799,,Bank Transfer
+2026-09-16,Online course,1299,Education,Credit Card
+2026-09-17,Petrol,650,,Cash
+2026-09-18,Zomato dinner,410,,UPI
+2026-09-19,Pharmacy,280,,Cash
+2026-09-20,Gaming subscription,499,Entertainment,Credit Card

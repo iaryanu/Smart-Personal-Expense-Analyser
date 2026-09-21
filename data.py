@@ -5,6 +5,17 @@ COLUMNS = [
     "amount", "category", "payment_method"
 ]
 
+# Shared by the Add Expense form and the CSV importer
+CATEGORIES = [
+    "Food", "Travel", "Shopping", "Bills",
+    "Education", "Entertainment", "Health", "Other"
+]
+
+PAYMENT_METHODS = [
+    "Cash", "UPI", "Debit Card",
+    "Credit Card", "Bank Transfer", "Other"
+]
+
 
 def empty_data():
     return pd.DataFrame(columns=COLUMNS)
@@ -26,6 +37,14 @@ def add_expense(df, expense_date, description, amount, category, payment):
         "category": category,
         "payment_method": payment
     }])
+    return new if df.empty else pd.concat([df, new], ignore_index=True)
+
+
+def add_expenses(df, rows):
+    """Add many expenses at once (e.g. from a CSV). IDs are assigned here."""
+    new = rows.copy()
+    new.insert(0, "id", range(next_id(df), next_id(df) + len(new)))
+    new = new[COLUMNS]
     return new if df.empty else pd.concat([df, new], ignore_index=True)
 
 

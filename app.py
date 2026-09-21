@@ -1,9 +1,13 @@
 import streamlit as st
 from datetime import date
+from pathlib import Path
 
 from data import (
-    empty_data, add_expense, delete_expense, prepare
+    empty_data, add_expense, add_expenses, delete_expense, prepare,
+    CATEGORIES, PAYMENT_METHODS
 )
+
+from csv_import import read_expenses_csv
 
 from functions import (
     predict_category, month_data, previous_month, total_expenses,
@@ -17,10 +21,7 @@ MONTHS = [
     "July", "August", "September", "October", "November", "December"
 ]
 
-CATEGORIES = [
-    "Food", "Travel", "Shopping", "Bills",
-    "Education", "Entertainment", "Health", "Other"
-]
+SAMPLE_CSV = Path(__file__).parent / "sample_expenses.csv"
 
 # Newer Streamlit uses width="stretch"; older versions use use_container_width.
 _version = tuple(int(x) for x in st.__version__.split(".")[:2])
@@ -48,6 +49,26 @@ if "expenses" not in st.session_state:
 if "budgets" not in st.session_state:
     st.session_state.budgets = {}
 
+# changing this key resets the CSV uploader after an import
+if "csv_key" not in st.session_state:
+    st.session_state.csv_key = 0
+
+today = date.today()
+YEARS = list(range(today.year - 10, today.year + 2))
+
+if "sel_month" not in st.session_state:
+    st.session_state.sel_month = MONTHS[today.month - 1]
+
+if "sel_year" not in st.session_state:
+    st.session_state.sel_year = today.year
+
+# After a CSV import, show the newest month in the file on the dashboard.
+if "jump_to" in st.session_state:
+    jump_year, jump_month = st.session_state.pop("jump_to")
+    if jump_year in YEARS:
+        st.session_state.sel_year = jump_year
+        st.session_state.sel_month = MONTHS[jump_month - 1]
+
 # one-time message shown after a save / delete (st.rerun would hide st.success)
 if "flash" in st.session_state:
     st.toast(st.session_state.pop("flash"), icon="✅")
@@ -65,14 +86,8 @@ st.write("Track expenses, analyse spending and monitor your budget.")
 
 st.sidebar.header("⚙️ Settings")
 
-today = date.today()
-
-sel_month_name = st.sidebar.selectbox(
-    "Month", MONTHS, index=today.month - 1
-)
-sel_year = st.sidebar.selectbox(
-    "Year", list(range(today.year - 10, today.year + 2)), index=10
-)
+sel_month_name = st.sidebar.selectbox("Month", MONTHS, key="sel_month")
+sel_year = st.sidebar.selectbox("Year", YEARS, key="sel_year")
 
 sel_month = MONTHS.index(sel_month_name) + 1
 month_key = f"{sel_year}-{sel_month:02d}"
@@ -262,11 +277,7 @@ with add_tab:
             )
 
         with c2:
-            payment = st.selectbox(
-                "Payment Method",
-                ["Cash", "UPI", "Debit Card",
-                 "Credit Card", "Bank Transfer", "Other"]
-            )
+            payment = st.selectbox("Payment Method", PAYMENT_METHODS)
 
             category = st.selectbox(
                 "Category", ["Auto Detect"] + CATEGORIES
@@ -295,6 +306,97 @@ with add_tab:
                     f"· Category: {final_category}"
                 )
                 st.rerun()
+
+    # ---------- Optional: import from a CSV file ----------
+
+    st.divider()
+    st.subheader("📄 Import from CSV (optional)")
+    st.caption(
+        "Already have your expenses in a file? Upload it here instead of "
+        "typing them in one by one."
+    )
+
+    with st.expander("What should the CSV look like?"):
+        st.markdown(
+            "| Column | Required? | Notes |\n"
+            "|---|---|---|\n"
+            "| `description` | Yes | e.g. Pizza, Uber |\n"
+            "| `amount` | Yes | Numbers only (₹ and commas are fine) |\n"
+            "| `date` | No | e.g. `2026-09-15` or `15/09/2026`. "
+            "If blank, the month chosen in the sidebar is used |\n"
+            "| `category` | No | Food, Travel, Shopping, Bills, Education, "
+            "Entertainment, Health, Other. If blank, it is auto-detected |\n"
+            "| `payment_method` | No | Cash, UPI, Debit Card, Credit Card, "
+            "Bank Transfer, Other. If blank, it is set to Other |\n\n"
+            "Column names aren't case-sensitive, and files downloaded from "
+            "the 📋 Transactions tab work too."
+        )
+
+        if SAMPLE_CSV.exists():
+            st.download_button(
+                "⬇️ Download sample CSV",
+                SAMPLE_CSV.read_bytes(),
+                "sample_expenses.csv",
+                "text/csv"
+            )
+
+    uploaded = st.file_uploader(
+        "Upload a CSV file", type=["csv"],
+        key=f"csv_upload_{st.session_state.csv_key}"
+    )
+
+    if uploaded is not None:
+        try:
+            rows, notes = read_expenses_csv(
+                uploaded.getvalue(), date(sel_year, sel_month, 1)
+            )
+        except ValueError as err:
+            st.error(str(err))
+        else:
+            for note in notes:
+                st.warning(note)
+
+            if rows.empty:
+                st.error("No valid expenses were found in this file.")
+
+            else:
+                st.success(
+                    f"Ready to import **{len(rows)}** expenses "
+                    f"totalling **{rupees(rows['amount'].sum())}**."
+                )
+
+                st.dataframe(
+                    rows.head(100),
+                    hide_index=True,
+                    column_config={
+                        "expense_date": st.column_config.DateColumn(
+                            "Date", format="DD MMM YYYY"
+                        ),
+                        "description": "Description",
+                        "amount": st.column_config.NumberColumn(
+                            "Amount (₹)", format="₹%.2f"
+                        ),
+                        "category": "Category",
+                        "payment_method": "Payment",
+                    },
+                    **STRETCH
+                )
+                if len(rows) > 100:
+                    st.caption(f"Showing the first 100 of {len(rows)} rows.")
+
+                if st.button(f"Import {len(rows)} expenses", type="primary"):
+                    st.session_state.expenses = add_expenses(
+                        st.session_state.expenses, rows
+                    )
+
+                    latest = max(rows["expense_date"])
+                    st.session_state.jump_to = (latest.year, latest.month)
+                    st.session_state.csv_key += 1
+                    st.session_state.flash = (
+                        f"Imported {len(rows)} expenses "
+                        "· open the 📊 Dashboard tab to analyse them"
+                    )
+                    st.rerun()
 
 
 # =============== TRANSACTIONS ===============
